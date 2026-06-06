@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cookie Jump</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --cookie: #c78138;
+        --cookie-light: #edae61;
+        --cookie-edge: #7d4821;
+        --chip: #2f1a10;
+        --ink: #21313d;
+        --panel: rgba(255, 255, 255, 0.72);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        font-family: "Comic Sans MS", "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.95) 0 4%, transparent 5%),
+          radial-gradient(circle at 18% 17%, rgba(255, 255, 255, 0.82) 0 5%, transparent 6%),
+          radial-gradient(circle at 74% 13%, rgba(255, 255, 255, 0.82) 0 5%, transparent 6%),
+          radial-gradient(circle at 81% 14%, rgba(255, 255, 255, 0.9) 0 4%, transparent 5%),
+          linear-gradient(#7ec9ff 0%, #d8f3ff 62%, #87c950 63%, #3d8e33 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: auto 0 0;
+        height: 34vh;
+        background:
+          repeating-linear-gradient(102deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 18px),
+          radial-gradient(ellipse at 25% 100%, rgba(31, 103, 32, 0.44) 0 20%, transparent 46%),
+          radial-gradient(ellipse at 76% 100%, rgba(29, 121, 42, 0.42) 0 22%, transparent 52%),
+          linear-gradient(180deg, rgba(142, 211, 87, 0.85), rgba(48, 128, 42, 0.95));
+        pointer-events: none;
+      }
+
+      .scene {
+        position: relative;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .hud {
+        z-index: 2;
+        width: min(92vw, 560px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 14px;
+        border: 3px solid rgba(50, 88, 70, 0.2);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 12px 32px rgba(30, 64, 54, 0.16);
+        backdrop-filter: blur(8px);
+      }
+
+      .counter {
+        margin: 0;
+        font-size: clamp(18px, 4vw, 28px);
+        font-weight: 900;
+      }
+
+      .status {
+        display: block;
+        margin-top: 2px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #4d6d46;
+      }
+
+      .restart {
+        min-height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 999px;
+        color: white;
+        background: #e3563f;
+        box-shadow: 0 5px 0 #9d2e22;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .restart:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 #9d2e22;
+      }
+
+      .playground {
+        position: relative;
+        width: min(92vw, 620px);
+        height: min(68vh, 500px);
+        display: grid;
+        place-items: end center;
+        padding-bottom: 92px;
+      }
+
+      .hint {
+        position: absolute;
+        top: 38px;
+        margin: 0;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.5);
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .shadow {
+        width: 136px;
+        height: 24px;
+        border-radius: 999px;
+        background: rgba(40, 61, 35, 0.24);
+        transform: translateY(30px);
+        transition: transform 180ms ease, opacity 180ms ease;
+      }
+
+      .cookie {
+        position: absolute;
+        bottom: 122px;
+        width: clamp(128px, 27vw, 158px);
+        aspect-ratio: 1;
+        border: 8px solid var(--cookie-edge);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 30% 24%, var(--cookie-light) 0 15%, transparent 16%),
+          radial-gradient(circle at 72% 72%, rgba(92, 46, 20, 0.2) 0 13%, transparent 14%),
+          var(--cookie);
+        box-shadow:
+          inset -13px -16px 0 rgba(88, 44, 18, 0.17),
+          0 16px 26px rgba(79, 56, 31, 0.2);
+        cursor: pointer;
+        transform-origin: 50% 90%;
+        transition: filter 180ms ease;
+      }
+
+      .cookie::before,
+      .cookie::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: var(--chip);
+      }
+
+      .cookie::before {
+        top: 33px;
+        left: 34px;
+        width: 16px;
+        height: 16px;
+        box-shadow:
+          56px 8px 0 var(--chip),
+          24px 62px 0 2px var(--chip),
+          74px 78px 0 -1px var(--chip);
+      }
+
+      .cookie::after {
+        top: 74px;
+        left: 24px;
+        width: 18px;
+        height: 18px;
+        box-shadow:
+          88px -12px 0 -2px var(--chip),
+          42px -32px 0 1px var(--chip);
+      }
+
+      .face {
+        position: absolute;
+        inset: 0;
+      }
+
+      .eye {
+        position: absolute;
+        top: 54px;
+        width: 12px;
+        height: 14px;
+        border-radius: 50%;
+        background: #22150d;
+      }
+
+      .eye.left {
+        left: 47px;
+      }
+
+      .eye.right {
+        right: 47px;
+      }
+
+      .mouth {
+        position: absolute;
+        left: 50%;
+        top: 79px;
+        width: 34px;
+        height: 18px;
+        border-bottom: 5px solid #22150d;
+        border-radius: 0 0 999px 999px;
+        transform: translateX(-50%);
+      }
+
+      .crack {
+        position: absolute;
+        left: 50%;
+        top: 22px;
+        width: 6px;
+        height: 96px;
+        border-radius: 999px;
+        opacity: 0;
+        background: #4b2713;
+        clip-path: polygon(30% 0, 100% 0, 58% 34%, 100% 34%, 42% 70%, 82% 70%, 26% 100%, 0 100%, 45% 63%, 10% 63%, 54% 28%, 16% 28%);
+        transform: translateX(-50%) rotate(-8deg);
+      }
+
+      .crumbs {
+        position: absolute;
+        bottom: 116px;
+        left: 50%;
+        width: 1px;
+        height: 1px;
+        pointer-events: none;
+      }
+
+      .crumb {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        opacity: 0;
+        background: var(--cookie);
+        border: 2px solid var(--cookie-edge);
+      }
+
+      .crumb:nth-child(1) {
+        --x: -96px;
+        --y: -38px;
+      }
+
+      .crumb:nth-child(2) {
+        --x: -58px;
+        --y: -94px;
+      }
+
+      .crumb:nth-child(3) {
+        --x: 74px;
+        --y: -76px;
+      }
+
+      .crumb:nth-child(4) {
+        --x: 108px;
+        --y: -28px;
+      }
+
+      .cookie.jump {
+        animation: jump 620ms cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+
+      .cookie.jump + .shadow {
+        opacity: 0.42;
+        transform: translateY(30px) scaleX(0.58);
+      }
+
+      .cookie.broken {
+        cursor: default;
+        filter: saturate(0.85);
+        animation: break-cookie 780ms ease both;
+      }
+
+      .cookie.broken .crack {
+        opacity: 1;
+      }
+
+      .cookie.broken ~ .crumbs .crumb {
+        animation: fly-crumb 720ms ease-out both;
+      }
+
+      @keyframes jump {
+        0%, 100% {
+          transform: translateY(0) scale(calc(var(--grow, 1) * 1), calc(var(--grow, 1) * 1)) rotate(0deg);
+        }
+
+        12% {
+          transform: translateY(8px) scale(calc(var(--grow, 1) * 1.06), calc(var(--grow, 1) * 0.92)) rotate(-3deg);
+        }
+
+        52% {
+          transform: translateY(-190px) scale(calc(var(--grow, 1) * 0.96), calc(var(--grow, 1) * 1.04)) rotate(12deg);
+        }
+
+        82% {
+          transform: translateY(0) scale(calc(var(--grow, 1) * 1.02), calc(var(--grow, 1) * 0.96)) rotate(-5deg);
+        }
+      }
+
+      @keyframes break-cookie {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        30% {
+          transform: translateY(10px) rotate(-5deg) scale(1.08, 0.9);
+        }
+
+        68% {
+          transform: translateY(0) rotate(7deg) scale(0.96, 1.05);
+        }
+
+        100% {
+          transform: translateY(18px) rotate(-4deg) scale(0.92, 0.86);
+        }
+      }
+
+      @keyframes fly-crumb {
+        0% {
+          opacity: 1;
+          transform: translate(0, 0) scale(0.5) rotate(0deg);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translate(var(--x), var(--y)) scale(1) rotate(260deg);
+        }
+      }
+
+      @media (max-width: 520px) {
+        .hud {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .restart {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="scene" aria-label="Cookie jumping game">
+      <section class="hud" aria-live="polite">
+        <p class="counter">
+          Jumps: <span id="jumpCount">0</span>/50
+          <span class="status" id="status">Click the cookie or press Space</span>
+        </p>
+        <button class="restart" type="button" id="restartButton">Restart</button>
+      </section>
+
+      <section class="playground">
+        <p class="hint">50 jumps is a lot for one cookie</p>
+        <button class="cookie" type="button" id="cookie" aria-label="Make the cookie jump">
+          <span class="face" aria-hidden="true">
+            <span class="eye left"></span>
+            <span class="eye right"></span>
+            <span class="mouth"></span>
+          </span>
+          <span class="crack" aria-hidden="true"></span>
+        </button>
+        <div class="shadow" aria-hidden="true"></div>
+        <div class="crumbs" aria-hidden="true">
+          <span class="crumb"></span>
+          <span class="crumb"></span>
+          <span class="crumb"></span>
+          <span class="crumb"></span>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const maxJumps = 50;
+      const cookie = document.querySelector("#cookie");
+      const jumpCount = document.querySelector("#jumpCount");
+      const status = document.querySelector("#status");
+      const restartButton = document.querySelector("#restartButton");
+
+      let jumps = 0;
+      let broken = false;
+      let cookieScale = 1;
+
+      function updateHud() {
+        jumpCount.textContent = jumps;
+        status.textContent = broken ? "The cookie cracked. Restart for a fresh one." : "Click the cookie or press Space";
+      }
+
+      function breakCookie() {
+        cookie.classList.remove("jump");
+        cookie.classList.add("broken");
+        updateHud();
+      }
+
+      function jump() {
+        if (broken) {
+          return;
+        }
+
+        jumps += 1;
+        updateHud();
+
+        cookieScale = 1 + jumps * 0.018;
+        cookie.style.setProperty("--grow", cookieScale);
+
+        cookie.classList.remove("jump");
+        void cookie.offsetWidth;
+        cookie.classList.add("jump");
+
+        if (jumps >= maxJumps) {
+          broken = true;
+          cookie.disabled = true;
+          window.setTimeout(breakCookie, 420);
+        }
+      }
+
+      function restart() {
+        jumps = 0;
+        broken = false;
+        cookieScale = 1;
+        cookie.style.setProperty("--grow", 1);
+        cookie.disabled = false;
+        cookie.classList.remove("jump", "broken");
+        updateHud();
+      }
+
+      cookie.addEventListener("click", jump);
+      restartButton.addEventListener("click", restart);
+
+      window.addEventListener("keydown", (event) => {
+        if (event.code === "Space") {
+          event.preventDefault();
+          jump();
+        }
+      });
+    </script>
+  </body>
+</html>
